@@ -28,6 +28,7 @@ import logging
 import re
 import subprocess
 import sys
+from os import popen as ospopen
 
 import aiy.assistant.auth_helpers
 import aiy.audio
@@ -35,8 +36,15 @@ import aiy.voicehat
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
 
+import aiy.cloudspeech
+import RPi.GPIO as GPIO
+
 import vlc
 import youtube_dl
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(26,GPIO.OUT)
+GPIO.setup(6,GPIO.OUT)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -46,7 +54,7 @@ logging.basicConfig(
 ydl_opts = {
     'default_search': 'ytsearch1:',
     'format': 'bestaudio/best',
-    'noplaylist': True,
+    'noplaylist': False,
     'quiet': True
 }
 vlc_instance = vlc.get_default_instance()
@@ -172,7 +180,17 @@ def radio(text):
     player = instance.media_player_new()
     media = instance.media_new(station)
     player.set_media(media)
+    aiy.audio.say('Playing radio '+station_name+' now')
     player.play()
+
+def pi_temperature():
+    tempCPU = int(open('/sys/class/thermal/thermal_zone0/temp').read()) / 1e3
+    _GPU_ = ospopen('vcgencmd measure_temp').readline();
+    tempGPU = _GPU_.replace("temp=","").replace("'C\n","");
+    
+    say = 'CPU is at '+str(tempCPU)+' degrees and GPU is at '+str(tempGPU)+' degrees'
+    print(say)
+    aiy.audio.say(say)
 
 def process_event(assistant, event):
     status_ui = aiy.voicehat.get_status_ui()
@@ -227,6 +245,10 @@ def process_event(assistant, event):
         elif 'radio' in text:
             assistant.stop_conversation()
             radio(text)
+        elif text == 'what\'s your temperature':
+            assistant.stop_conversation()
+            pi_temperature()
+            
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
@@ -241,7 +263,7 @@ def process_event(assistant, event):
 def _on_button_pressed():
     vlc_player.pause()      
     radio_off()
-
+    
 
 def main():
     radio = False

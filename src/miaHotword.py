@@ -32,7 +32,7 @@ class miaAudio(object):
 class miaHotword:
     def __init__(self):
       ############# MODIFY THE FOLLOWING #############
-      model_file='./resources/Caca.pmdl' # put your hotword file here. if you want to just try out use ./resources/snowboy.umdl
+      model_file='./resources/snowboy.umdl' # put your hotword file here. if you want to just try out use ./resources/snowboy.umdl
       sensitivity = 0.5
       ############### END OF MODIFY ##################
       self.detection = miasnowboydecoder.HotwordDetector(model_file, sensitivity=sensitivity)

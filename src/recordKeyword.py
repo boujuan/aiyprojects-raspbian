@@ -107,7 +107,7 @@ if __name__ == '__main__':
     
     endpoint = "https://snowboy.kitt.ai/api/v1/train/"
     filepath = "./resources/"+hotword_name
-    ok="N"
+    ok="Y"
     recorder=get_recorder()
     recorder.start()
     while ok.upper()=="N":
