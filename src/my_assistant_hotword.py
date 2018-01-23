@@ -181,20 +181,20 @@ def pi_temperature():
 
 
 def process_event(assistant, miaHot, recorder):
-    # change to true for not needing to repeat hotword inmedially for seconds=x
+    # change from False to True for not needing to repeat hotword inmedially for seconds=x
     voice_only = False
     seconds = 5
     status_ui = aiy.voicehat.get_status_ui()
-    status_ui.set_trigger_sound_wave('resources/dong.wav')
-    status_ui.status('starting')
+    status_ui.set_trigger_sound_wave('src/resources/dong.wav')
+    status_ui.status('ready')
     miaHot.waitForHotword(recorder, voice_only, seconds)
     status_ui.status('listening')
     print('Listening...')
-    text, audio = assistant.recognize()
-    status_ui.status('thinking')
+    text, audio = assistant.recognize()    
 
     if text is not None:
         print('You said "', text, '"')
+        status_ui.status('thinking')
 
         if text == 'power off':
             status_ui.status('stopping')
@@ -215,7 +215,7 @@ def process_event(assistant, miaHot, recorder):
         	print('Bye!')
         	power_off_pi()
         elif text == 'IP address':
-            say_ip()
+            say_ip()	# Atm says first local ip address and then external ip address (with google assistant)
         elif text == 'volume up':
             volume_up()
             audio = None
@@ -265,6 +265,7 @@ def _on_button_pressed():
 
 def main():
     radio = False
+    aiy.voicehat.get_status_ui().status('starting')
     assistant = aiy.assistant.grpc.get_assistant()
     miaHot = miaHotword.miaHotword()
     with aiy.audio.get_recorder() as recorder:

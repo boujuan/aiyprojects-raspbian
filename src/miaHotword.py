@@ -33,10 +33,10 @@ class miaAudio(object):
 class miaHotword:
     def __init__(self):
       ############# MODIFY THE FOLLOWING #############
-      model_file1='./resources/espejito.pmdl' # put your hotword file here. if you want to just try out use ./resources/snowboy.umdl
-      model_file2='./resources/smart_mirror.pmdl'
+      model_file1='./src/resources/smart_mirror.umdl' # put your hotword file here.  ./resources/snowboy.umdl
+      model_file2='./src/resources/Hey Listen.pmdl'
       models=[model_file1,model_file2]
-      sensitivity = 0.52
+      sensitivity = 0.43
       ############### END OF MODIFY ##################
       self.detection = miasnowboydecoder.HotwordDetector(models, sensitivity=sensitivity)
       

@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     ############# MODIFY THE FOLLOWING #############
     token = "b5a87774acedad3e579cc512a09712304e715594"
-    hotword_name = "espejito"
+    hotword_name = "Hey Listen"
     language = "en"
     age_group = "20_29"
     gender = "M"
