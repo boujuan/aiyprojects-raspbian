@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import time
 import wave
 import sys
@@ -96,8 +97,8 @@ def get_wave(fname):
 if __name__ == '__main__':
 
     ############# MODIFY THE FOLLOWING #############
-    token = "44b84e72d34173825d3d588be92d761322f8cd5a"
-    hotword_name = "smartmirror"
+    token = "b5a87774acedad3e579cc512a09712304e715594"
+    hotword_name = "espejito"
     language = "en"
     age_group = "20_29"
     gender = "M"
@@ -107,7 +108,7 @@ if __name__ == '__main__':
     
     endpoint = "https://snowboy.kitt.ai/api/v1/train/"
     filepath = "./resources/"+hotword_name
-    ok="Y"
+    ok="N"
     recorder=get_recorder()
     recorder.start()
     while ok.upper()=="N":

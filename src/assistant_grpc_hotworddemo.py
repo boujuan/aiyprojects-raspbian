@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """A demo of the Google Assistant GRPC recognizer with hotword activation."""
 
 import logging
