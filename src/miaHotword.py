@@ -36,7 +36,7 @@ class miaHotword:
       model_file1='./resources/espejito.pmdl' # put your hotword file here. if you want to just try out use ./resources/snowboy.umdl
       model_file2='./resources/smart_mirror.pmdl'
       models=[model_file1,model_file2]
-      sensitivity = 0.5
+      sensitivity = 0.52
       ############### END OF MODIFY ##################
       self.detection = miasnowboydecoder.HotwordDetector(models, sensitivity=sensitivity)
       

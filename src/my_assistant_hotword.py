@@ -174,8 +174,8 @@ def pi_temperature():
     tempCPU = int(open('/sys/class/thermal/thermal_zone0/temp').read()) / 1e3
     _GPU_ = ospopen('vcgencmd measure_temp').readline()
     tempGPU = _GPU_.replace("temp=", "").replace("'C\n", "")
-    say = 'CPU is at ' + \
-        str(tempCPU) + ' degrees and GPU is at ' + str(tempGPU) + ' degrees'
+    say = 'CPU is at ' + str(tempCPU) + ' degrees and GPU is at ' + str(
+        tempGPU) + ' degrees'
     print(say)
     aiy.audio.say(say)
 
@@ -185,6 +185,7 @@ def process_event(assistant, miaHot, recorder):
     voice_only = False
     seconds = 5
     status_ui = aiy.voicehat.get_status_ui()
+    status_ui.set_trigger_sound_wave('resources/dong.wav')
     status_ui.status('starting')
     miaHot.waitForHotword(recorder, voice_only, seconds)
     status_ui.status('listening')
@@ -197,38 +198,61 @@ def process_event(assistant, miaHot, recorder):
 
         if text == 'power off':
             status_ui.status('stopping')
-            gpower_off_pi()
+            power_off_pi()
+            audio = None
+        if text == 'shut down':
+            assistant.stop_conversation()
+            aiy.audio.say('Commencing Self-Destruct Sequence in 5. 4. 3. 2. 1')
+            status_ui.status('stopping')
+            power_off_pi()
+            audio = None
         elif text == 'reboot':
             status_ui.status('stopping')
             reboot_pi()
-        elif text == 'ip address':
+            audio = None
+        elif text == 'goodbye':
+        	status_ui.status('stopping')
+        	print('Bye!')
+        	power_off_pi()
+        elif text == 'IP address':
             say_ip()
         elif text == 'volume up':
             volume_up()
+            audio = None
         elif text == 'volume down':
             volume_down()
-        elif text == 'volume max':
+            audio = None
+        elif text == 'maximum volume':
             volume_max()
+            audio = None
         elif text == 'mute':
             volume_min()
+            audio = None
         elif text.startswith('volume '):
-            volume_set(int(text[7:]))
+            volume_set(int(text[7:])) # Fix the exception when text[7:] is not an integer 1-100
+            audio = None
         elif text == 'pause':
             vlc_player.set_pause(True)
+            audio = None
         elif text == 'resume':
             vlc_player.set_pause(False)
+            audio = None
         elif text.startswith('play '):
             play_music(text[5:])
+            audio = None
         elif text == 'stop music':
             vlc_player.stop()
             radio_off()
+            audio = None
         elif text == 'stop':
             vlc_player.stop()
             radio_off()
         elif 'radio' in text:
             radio(text)
+            audio = None
         elif text == 'what\'s your temperature':
             pi_temperature()
+            audio = None
 
     if audio is not None:
         aiy.audio.play_audio(audio)
