@@ -12,6 +12,9 @@ import aiy.voicehat
 import RPi.GPIO as GPIO
 import vlc
 import youtube_dl
+import feedparser
+import random
+import time
 
 logging.basicConfig(
     level=logging.INFO,
@@ -104,6 +107,16 @@ def play_music(name):
         vlc_player.play()
 
 
+def pi_temperature():
+    tempCPU = int(open('/sys/class/thermal/thermal_zone0/temp').read()) / 1e3
+    _GPU_ = ospopen('vcgencmd measure_temp').readline()
+    tempGPU = _GPU_.replace("temp=", "").replace("'C\n", "")
+    say = 'CPU is at ' + str(tempCPU) + ' degrees and GPU is at ' + str(
+        tempGPU) + ' degrees'
+    print(say)
+    aiy.audio.say(say)
+    
+
 def radio_off():
     try:
         player.stop()
@@ -168,18 +181,73 @@ def radio(text):
     player.set_media(media)
     aiy.audio.say('Playing radio ' + station_name + ' now')
     player.play()
+    
+    
+def podcast(voice_command):
+	voice_command = (voice_command.lower()).strip()
+	logging.info("Podcast command received: %s ", voice_command)
+	if (voice_command == "stop") or (voice_command == "off"):
+		logging.info("Stopping Podcast")
+		stop_podcast()
+		return
+	instance = vlc.Instance()
+	global podcastPlayer
+	podcastPlayer = instance.media_player_new()	
+	if "random" in voice_command:
+		random_podcast = True
+		voice_command = (voice_command.replace("random", '', 1)).strip()
+	elif "episode " in voice_command:
+		random_podcast = False
+		episode_list = [int(s) for s in voice_command.split() if s.isdigit()]
+		episode = int(episode_list[0])-1
+		voice_command = (voice_command.replace("episode "+str(episode),'', 1)).strip() 
+		# Can choose episode with voice
+	else:
+		random_podcast = False
+		episode = 0	
+	global podcast_url
+	podcast_url = None
+	logging.info("looking for podcast: " + voice_command)	
+	try:
+		feedUrl = podcast_get_url(voice_command)
+	except KeyError:
+		aiy.audio.say("Sorry podcast not found")
+		return
+	logging.info("podcast feed: " + feedUrl)	
+	feed = feedparser.parse( feedUrl )	
+	if random_podcast:
+		number_of_podcasts = len(feed['entries'])
+		logging.info("podcast feed length: " + str(number_of_podcasts))
+		podcast_number = random.randint(0,number_of_podcasts)
+	else:
+		podcast_number = episode		
+	for link in feed.entries[podcast_number].links:
+		href = link.href
+		if ".mp3" in href:
+			podcast_url = href
+			break			
+	logging.info("podcast url: " + podcast_url)	
+	media = instance.media_new(podcast_url)
+	podcastPlayer.set_media(media)
+	podcastPlayer.play()
+	time.sleep(1)
+	playing = set([1,2,3,4])
+	
+			
+def podcast_get_url(podcast_name):
+	# add rss feeds for podcasts
+	urls = {
+		'escape this podcast': 'https://escapethispodcast.podbean.com/feed/',
+		'android authority': 'http://androidauthority.libsyn.com/rss',
+		'history of english': 'http://historyofenglishpodcast.com/feed/podcast/',
+		}
+	return urls[podcast_name]
+		
+		
+def stop_podcast():
+	podcastPlayer.stop()
 
-
-def pi_temperature():
-    tempCPU = int(open('/sys/class/thermal/thermal_zone0/temp').read()) / 1e3
-    _GPU_ = ospopen('vcgencmd measure_temp').readline()
-    tempGPU = _GPU_.replace("temp=", "").replace("'C\n", "")
-    say = 'CPU is at ' + str(tempCPU) + ' degrees and GPU is at ' + str(
-        tempGPU) + ' degrees'
-    print(say)
-    aiy.audio.say(say)
-
-
+	
 def process_event(assistant, miaHot, recorder):
     # change from False to True for not needing to repeat hotword inmedially for seconds=x
     voice_only = False
@@ -200,7 +268,7 @@ def process_event(assistant, miaHot, recorder):
             status_ui.status('stopping')
             power_off_pi()
             audio = None
-        if text == 'shut down':
+        elif text == 'shut down':
             assistant.stop_conversation()
             aiy.audio.say('Commencing Self-Destruct Sequence in 5. 4. 3. 2. 1')
             status_ui.status('stopping')
@@ -253,6 +321,9 @@ def process_event(assistant, miaHot, recorder):
         elif text == 'what\'s your temperature':
             pi_temperature()
             audio = None
+        elif text.startswith('podcast '):
+        	podcast(text[8:])
+        	audio = None
 
     if audio is not None:
         aiy.audio.play_audio(audio)
